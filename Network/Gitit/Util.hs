@@ -25,6 +25,7 @@ module Network.Gitit.Util ( readFileUTF8
                           , trim
                           , yesOrNo
                           , parsePageType
+                          , mkCookieSecure
                           )
 where
 import System.Directory
@@ -34,6 +35,9 @@ import System.IO.Error (isAlreadyExistsError)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toLower)
 import Network.Gitit.Types
+import Happstack.Server.Cookie (Cookie(Cookie))
+import Happstack.Server.Internal.Types (rqSecure)
+import Happstack.Server.Internal.Monads (ServerMonad, askRq)
 import qualified Control.Exception as E
 import qualified Text.Pandoc.UTF8 as UTF8
 
@@ -101,3 +105,8 @@ parsePageType s =
        "latex+lhs"    -> (LaTeX,True)
        x              -> error $ "Unknown page type: " ++ x
 
+-- | Make a cookie from name and value, when the request is secure, make the cookie secure
+mkCookieSecure :: ServerMonad m => String -> String -> m Cookie
+mkCookieSecure key val = do
+  rq <- askRq
+  return $ Cookie "1" "/" "" key val (rqSecure rq) False

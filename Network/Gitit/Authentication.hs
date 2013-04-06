@@ -374,7 +374,8 @@ loginUser params = do
   if allowed
     then do
       key <- newSession (SessionData uname)
-      addCookie (MaxAge $ sessionTimeout cfg) (mkCookie "sid" (show key))
+      cookie <- mkCookieSecure "sid" (show key)
+      addCookie (MaxAge $ sessionTimeout cfg) cookie
       seeOther (encUrl destination) $ toResponse $ p << ("Welcome, " ++ uname)
     else
       withMessages ["Invalid username or password."] loginUserForm
@@ -466,7 +467,8 @@ loginRPXUser params = do
        user <- liftIO $ mkUser (fromMaybe userId email) (fromMaybe "" email) "none"
        updateGititState $ \s -> s { users = M.insert userId user (users s) }
        key <- newSession (SessionData userId)
-       addCookie (MaxAge $ sessionTimeout cfg) (mkCookie "sid" (show key))
+       cookie <- mkCookieSecure "sid" (show key)
+       addCookie (MaxAge $ sessionTimeout cfg) cookie
        see $ fromJust $ rDestination params
       where
         prop pname info = lookup pname $ R.userData info

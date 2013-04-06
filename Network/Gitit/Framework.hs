@@ -58,6 +58,7 @@ import Safe
 import Network.Gitit.Server
 import Network.Gitit.State
 import Network.Gitit.Types
+import Network.Gitit.Util
 import Data.FileStore
 import Data.Char (toLower)
 import Control.Monad (mzero, liftM, unless, MonadPlus)
@@ -105,7 +106,8 @@ withUserFromSession handler = withData $ \(sk :: Maybe SessionKey) -> do
   mbUser <- case mbSd of
             Nothing    -> return Nothing
             Just sd    -> do
-              addCookie (MaxAge $ sessionTimeout cfg) (mkCookie "sid" (show $ fromJust sk))  -- refresh timeout
+              cookie <- mkCookieSecure "sid" (show $ fromJust sk)
+              addCookie (MaxAge $ sessionTimeout cfg) cookie -- refresh timeout
               getUser $! sessionUser sd
   let user = maybe "" uUsername mbUser
   localRq (setHeader "REMOTE_USER" user) handler
